@@ -118,7 +118,7 @@
           "script": {
             "exec": [
               "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-              "pm.test('Returns an items array', () => pm.expect(pm.response.json().items).to.be.an('array'));"
+              "pm.test('Returns an items array', () => pm.expect(pm.response.json()).to.be.an('array'));"
             ]
           }
         }
@@ -145,7 +145,7 @@
           "script": {
             "exec": [
               "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-              "const items = pm.response.json().items;",
+              "const items = pm.response.json();",
               "pm.test('Every result matches the filter', () => {",
               "  items.forEach(it => {",
               "    pm.expect(it.status).to.eql('found');",

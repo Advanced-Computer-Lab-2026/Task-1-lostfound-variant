@@ -41,7 +41,7 @@ export async function getAllItems(req, res, next) {
     const items = await Item.find(value)
       .sort({ createdAt: -1 })
       .populate('reportedBy', 'name email');
-    res.json({ items });
+    res.json(items);
   } catch (err) { next(err); }
 }
 
