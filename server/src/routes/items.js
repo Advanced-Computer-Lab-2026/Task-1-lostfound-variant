@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import express from 'express';
+
 import {
   getAllItems,
   getItem,
@@ -7,8 +8,12 @@ import {
   deleteItem
 } from '../controllers/itemController.js';
 
-const router = Router();
+const router = express.Router();
 
-// TODO: wire up the routes described in README.md section 3.
+router.get('/', getAllItems);
+router.get('/:id', getItem);
+router.post('/', createItem);
+router.patch('/:id', updateItem);
+router.delete('/:id', deleteItem);
 
 export default router;
