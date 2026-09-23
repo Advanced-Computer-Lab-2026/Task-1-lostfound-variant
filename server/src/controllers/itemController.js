@@ -54,7 +54,18 @@ const updateSchema = Joi.object({
 // TODO: implement per README.md section 3.
 export async function getAllItems(req, res, next) {
   try {
-    const items = await Item.find().sort({ createdAt: -1 });
+    const filter = {};
+
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    const items = await Item.find(filter).sort({ createdAt: -1 });
+
     res.json({ items });
   } catch (err) {
     next(err);
