@@ -45,7 +45,7 @@ export async function createUser(req, res, next) {
 
     const password = await bcrypt.hash(value.password, 10);
     const user = await User.create({ name: value.name, email: value.email, password });
-    res.status(201).json({ user: publicUser(user) });
+    res.status(201).json(item);
   } catch (err) { next(err); }
 }
 
