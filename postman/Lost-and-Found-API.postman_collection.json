@@ -1,0 +1,304 @@
+{
+  "info": {
+    "_postman_id": "8f2a1d4e-6b3c-4a9d-9e2f-lostfound-collection",
+    "name": "Campus Lost & Found API",
+    "description": "Full CRUD + validation + filtering + populate test suite for the Lost & Found API (Task 1 variant).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('ok is true', () => pm.expect(pm.response.json().ok).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Create User (setup, for reportedBy)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman Tester\",\n  \"email\": \"postman.tester.{{$timestamp}}@school.edu\",\n  \"password\": \"secret1\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('User has an id', () => pm.expect(body.user.id).to.be.a('string'));",
+              "pm.environment.set('userId', body.user.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create Item",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman test umbrella {{$timestamp}}\",\n  \"description\": \"Left in the lecture hall\",\n  \"category\": \"accessories\",\n  \"status\": \"found\",\n  \"location\": \"Engineering Bldg, room 204\",\n  \"reportedBy\": \"{{userId}}\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/items", "host": ["{{baseUrl}}"], "path": ["items"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Item has an id', () => pm.expect(body.item._id).to.be.a('string'));",
+              "pm.test('Defaults/echoed fields correct', () => {",
+              "  pm.expect(body.item.category).to.eql('accessories');",
+              "  pm.expect(body.item.status).to.eql('found');",
+              "});",
+              "pm.environment.set('itemId', body.item._id);",
+              "pm.environment.set('itemTitle', body.item.title);",
+              "pm.environment.set('itemLocation', body.item.location);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Get Item by Id (populate check)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const item = pm.response.json().item;",
+              "pm.test('reportedBy is populated with name/email, not just an id', () => {",
+              "  pm.expect(item.reportedBy).to.be.an('object');",
+              "  pm.expect(item.reportedBy).to.have.property('name');",
+              "  pm.expect(item.reportedBy).to.have.property('email');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. List Items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/items", "host": ["{{baseUrl}}"], "path": ["items"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns an items array', () => pm.expect(pm.response.json().items).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Filter Items by status & category",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/items?status=found&category=accessories",
+          "host": ["{{baseUrl}}"],
+          "path": ["items"],
+          "query": [
+            { "key": "status", "value": "found" },
+            { "key": "category", "value": "accessories" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const items = pm.response.json().items;",
+              "pm.test('Every result matches the filter', () => {",
+              "  items.forEach(it => {",
+              "    pm.expect(it.status).to.eql('found');",
+              "    pm.expect(it.category).to.eql('accessories');",
+              "  });",
+              "});",
+              "pm.test('Includes the item we just created', () => {",
+              "  const ids = items.map(it => it._id);",
+              "  pm.expect(ids).to.include(pm.environment.get('itemId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Update Item (PATCH status -> claimed)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"claimed\"\n}" },
+        "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('status field updated', () => pm.expect(pm.response.json().item.status).to.eql('claimed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Create Duplicate Item (expect 409)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"{{itemTitle}}\",\n  \"location\": \"{{itemLocation}}\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/items", "host": ["{{baseUrl}}"], "path": ["items"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 409 (duplicate title+location)', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Create Item with Invalid Category (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Bad category test\",\n  \"category\": \"not-a-real-category\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/items", "host": ["{{baseUrl}}"], "path": ["items"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 400 (Joi validation)', () => pm.response.to.have.status(400));",
+              "pm.test('Error message mentions category', () => pm.expect(pm.response.json().message).to.include('category'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Update Item with Empty Body (expect 400)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 400 (min(1) rejects empty patch)', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Delete Item",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('ok is true', () => pm.expect(pm.response.json().ok).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Get Deleted Item (expect 404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Delete User (cleanup)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["users", "{{userId}}"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
