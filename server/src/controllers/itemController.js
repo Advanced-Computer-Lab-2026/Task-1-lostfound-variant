@@ -53,10 +53,10 @@ export async function createItem(req, res, next) {
     const { value, error } = createSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.message });
 
-    const existing = await User.findOne({ name: value.name });
-    if (existing) return res.status(409).json({ message: 'Item name already exists' });
+    const existing = await Item.findOne({ title: value.title, location: value.location });
+    if (existing) return res.status(409).json({ message: 'Item already reported at this location' });
 
-    const item = await Item.create({ name: value.name, description: value.description });
+    const item = await Item.create(value);
     res.status(201).json({ item });
     // TODO
   } catch (err) {
