@@ -31,15 +31,25 @@ const updateSchema = Joi.object({
   reportedBy: Joi.string()
 });
 
-
+// GET /api/items
 export async function getAllItems(req, res, next) {
   try {
-    const items = await Item.find().sort({ createdAt: -1 });
+    const { status, category } = req.query;
+
+    const filter = {};
+
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+
+    const items = await Item.find(filter).sort({ createdAt: -1 });
+
     res.json({ items });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 }
 
-
+// GET /api/items/:id
 export async function getItem(req, res, next) {
   try {
     const item = await Item.findById(req.params.id);
