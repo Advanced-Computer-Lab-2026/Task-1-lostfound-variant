@@ -6,8 +6,8 @@ import Joi from 'joi';
 const createSchema = Joi.object({
   title: Joi.string().required(),
   description: Joi.string().optional(),
-  category: Joi.string().valid('electronics', 'clothing', 'documents', 'accessories', 'other').default('other').required(),
-  status: Joi.string().valid('lost', 'found', 'claimed').default('lost').required(),
+  category: Joi.string().valid('electronics', 'clothing', 'documents', 'accessories', 'other').default('other').optional(),
+  status: Joi.string().valid('lost', 'found', 'claimed').default('lost').optional(),
   location: Joi.string().optional(),
   reportedBy: Joi.string().hex().length(24).optional()
 });
