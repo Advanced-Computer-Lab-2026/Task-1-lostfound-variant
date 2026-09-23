@@ -53,7 +53,17 @@ const updateSchema = Joi.object({
 // TODO: implement per README.md section 3.
 export async function getAllItems(req, res, next) {
   try {
-    const items = await Item.find()
+    const filter = {};
+
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    const items = await Item.find(filter)
       .sort({ createdAt: -1 })
       .populate('reportedBy', 'name email')
       .lean();
@@ -63,7 +73,6 @@ export async function getAllItems(req, res, next) {
     next(err);
   }
 }
-
 // GET /api/items/:id
 // TODO: implement per README.md section 3.
 export async function getItem(req, res, next) {
