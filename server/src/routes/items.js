@@ -9,6 +9,11 @@ import {
 
 const router = Router();
 
-// TODO: wire up the routes described in README.md section 3.
+router.route('/').get(getAllItems);
+  
+router.route('/').post(createItem);
 
+router.route('/:id').delete(deleteItem);
+router.route('/:id').patch(updateItem);
+router.route('/:id').get(getItem);
 export default router;
