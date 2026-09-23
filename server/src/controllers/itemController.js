@@ -1,4 +1,6 @@
+import Joi from 'joi';
 import { Item } from '../models/Item.js';
+
 
 // TODO: write a validation schema for create/update per README.md section 2.
 
